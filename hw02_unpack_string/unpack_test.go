@@ -43,3 +43,22 @@ func TestUnpackInvalidString(t *testing.T) {
 		})
 	}
 }
+
+func TestReverse(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{input: "abcd90", expected: "09dcba"},
+		{input: "", expected: ""},
+		{input: "XYZ", expected: "ZYX"},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.input, func(t *testing.T) {
+			result := Reverse(tc.input)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
