@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"golang.org/x/example/hello/reverse"
 )
@@ -16,36 +17,37 @@ func Unpack(str string) (string, error) {
 		return "", nil
 	}
 
-	if unicode.IsDigit(rune(str[0])) { // первый символ цифра
+	firstRune, _ := utf8.DecodeRuneInString(str) // получить первый символ
+
+	if unicode.IsDigit(firstRune) { // первый символ цифра
 		return "", ErrInvalidString
 	}
 
 	var (
 		strBuilder strings.Builder // для собирания строки
 		count      = 1             // счётчик повтора символа
-		err        error
+		tmpRune    rune
 	)
-	strReverse := Reverse(str)     // обратный порядок символов исходной строки
-	tmpRune := rune(strReverse[0]) // начальный символ
+	strReverse := reverse.String(str) // обратный порядок символов исходной строки
 
-	for _, r := range strReverse { // перебор всех рун в строке
-		if unicode.IsDigit(r) { // если цифра
+	for len(strReverse) > 0 {
+		curRune, sizeRune := utf8.DecodeRuneInString(strReverse) // получить первый символ строки и его размер в байтах
+		if curRune == utf8.RuneError {
+			return "", ErrInvalidString // выдать ошибку если сивол некорректен
+		}
+
+		if unicode.IsDigit(curRune) { // если цифра
 			if unicode.IsDigit(tmpRune) { // если предыдущая тоже цифра
 				return "", ErrInvalidString // выдать ошибку
 			}
-			count, err = strconv.Atoi(string(r)) // конвертнуть в int
-			if err != nil {
-				return "", ErrInvalidString
-			}
+			count, _ = strconv.Atoi(string(curRune)) // конвертнуть в int
 		} else { // если это символ
-			strBuilder.WriteString(strings.Repeat(string(r), count)) // добавить к строке повторив count раз
-			count = 1                                                // сбросить счётчик повторов
+			strBuilder.WriteString(strings.Repeat(string(curRune), count)) // добавить к строке повторив count раз
+			count = 1                                                      // сбросить счётчик повторов
 		}
-		tmpRune = r // записать текущий символ
+		tmpRune = curRune                  // сохранить текущий символ
+		strReverse = strReverse[sizeRune:] // обрезать массив
 	}
-	return Reverse(strBuilder.String()), nil
-}
 
-func Reverse(str string) string {
-	return reverse.String(str)
+	return reverse.String(strBuilder.String()), nil
 }
