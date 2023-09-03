@@ -43,9 +43,40 @@ var text = `Как видите, он  спускается  по  лестни�
 	посидеть у огня и послушать какую-нибудь интересную сказку.
 		В этот вечер...`
 
+var shortText = "Девочка шла по дороге и шаркала пятками по асфальту."
+
+var taskWordsText = "cat and dog, one dog,two cats and one man   "
+
 func TestTop10(t *testing.T) {
 	t.Run("no words in empty string", func(t *testing.T) {
 		require.Len(t, Top10(""), 0)
+	})
+
+	t.Run("string with short text", func(t *testing.T) {
+		expected := []string{
+			"по",        // 2
+			"Девочка",   // 1
+			"асфальту.", // 1
+			"дороге",    // 1
+			"и",         // 1
+			"пятками",   // 1
+			"шаркала",   // 1
+			"шла",       // 1
+		}
+		require.Equal(t, expected, Top10(shortText))
+	})
+
+	t.Run("string with task words", func(t *testing.T) {
+		expected := []string{
+			"and",     // 2
+			"one",     // 2
+			"cat",     // 1
+			"cats",    // 1
+			"dog,",    // 1
+			"dog,two", // 1
+			"man",     // 1
+		}
+		require.Equal(t, expected, Top10(taskWordsText))
 	})
 
 	t.Run("positive test", func(t *testing.T) {
