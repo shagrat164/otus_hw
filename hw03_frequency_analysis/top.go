@@ -1,78 +1,39 @@
 package hw03frequencyanalysis
 
 import (
-	"fmt"
-	"regexp"
 	"sort"
+	"strings"
 )
-
-var (
-	re      = regexp.MustCompile(`[\s]+`)
-	verbose = false
-)
-
-type mySliceType struct {
-	word string // слово
-	num  int    // количество
-}
 
 func Top10(txt string) []string {
-	split := re.Split(txt, -1)
-	set := append([]string{}, split...)
+	set := strings.Fields(txt)
 
-	sliceUniqueValue := getCountUniqueValue(set)
-
-	// сортировка по переменной .num и .word, если .num одинаков
-	sort.Slice(sliceUniqueValue, func(i, j int) bool {
-		if sliceUniqueValue[i].num == sliceUniqueValue[j].num {
-			return sliceUniqueValue[i].word < sliceUniqueValue[j].word
-		}
-		return sliceUniqueValue[i].num > sliceUniqueValue[j].num
-	})
-
-	sliceOnlyWord := make([]string, 0, len(sliceUniqueValue))
-
-	if verbose {
-		fmt.Printf("sliceUniqueWordAndValue: ")
-		fmt.Println(sliceUniqueValue) // для наглядности
-	}
-
-	for _, element := range sliceUniqueValue { // пройтись по всему слайсу
-		sliceOnlyWord = append(sliceOnlyWord, element.word) // и добавить только слова уже отсортированные
-	}
-
-	if len(sliceOnlyWord) > 10 {
-		sliceOnlyWord = sliceOnlyWord[:10] // максимум 10 слов
-	}
-
-	if verbose {
-		fmt.Printf("sliceOnlyWord: ")
-		fmt.Println(sliceOnlyWord) // для наглядности
-	}
-
-	return sliceOnlyWord
-}
-
-func getCountUniqueValue(arr []string) []mySliceType {
-	// мапа уникальных значений, где ключ это слово,
-	// а значение это количество вхождений в массиве arr
 	dict := make(map[string]int)
-	for _, word := range arr {
+	for _, word := range set {
 		dict[word]++
 	}
 
-	resultSlice := make([]mySliceType, 0, len(dict))
-	var tmpMySlice mySliceType
-	// тут вытаскиваю данные в mySliceType
+	wordsSlice := make([]string, 0, len(dict)) // слайс размером с мапу dict
+
 	for key := range dict {
-		if key == "" {
-			// Я не понял, почему при нескольких пробелах в map попадает строка ""
-			continue // пропуск
-		}
-		tmpMySlice.word = key
-		tmpMySlice.num = dict[key]
-		resultSlice = append(resultSlice, tmpMySlice)
+		wordsSlice = append(wordsSlice, key) // заполнить слайс уникальными словами
 	}
 
-	return resultSlice
+	// сортировка Девид Блейн стайл
+	// по слову берётся количество повторений в dict
+	// и сортируется по убыванию или по алфавиту, если
+	// количество повторов одинаково
+	sort.Slice(wordsSlice, func(i, j int) bool {
+		a, b := wordsSlice[i], wordsSlice[j]
+		if dict[a] == dict[b] {
+			return a < b
+		}
+		return dict[a] > dict[b]
+	})
+
+	if len(wordsSlice) > 10 {
+		wordsSlice = wordsSlice[:10] // максимум 10 слов на выходе
+	}
+
+	return wordsSlice
 }
