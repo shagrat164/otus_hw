@@ -1,6 +1,6 @@
-module github.com/shagrat164/otus_hw/hw10_program_optimization
+module github.com/fixme_my_friend/hw10_program_optimization
 
-go 1.21
+go 1.22
 
 require github.com/stretchr/testify v1.7.0
 
