@@ -17,29 +17,32 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 
 	outCh := in
 	for _, stage := range stages {
-		outCh = func(in In) (out Out) {
-			bridgeCh := make(Bi) // Создаётся промежуточный канал для связи стадий
-			go func() {
-				defer close(bridgeCh) // Закрытие канала по завершению работы
-
-				for {
-					select {
-					case <-done: // Прекратить работу при закрытии `done`
-						<-in
-						return
-					case data, ok := <-in:
-						if !ok { // Завершение если вход закрыт
-							return
-						}
-						select {
-						case <-done: // Проверка `done` перед отправкой
-						case bridgeCh <- data:
-						}
-					}
-				}
-			}()
-			return stage(bridgeCh)
-		}(outCh)
+		outCh = createStage(outCh, done, stage)
 	}
 	return outCh
+}
+
+func createStage(in, done In, stage Stage) (out Out) {
+	bridgeCh := make(Bi) // Создаётся промежуточный канал для связи стадий
+
+	go func() {
+		defer close(bridgeCh) // Закрытие канала по завершению работы
+
+		for {
+			select {
+			case <-done: // Прекратить работу при закрытии `done`
+				<-in
+				return
+			case data, ok := <-in:
+				if !ok { // Завершение если вход закрыт
+					return
+				}
+				select {
+				case <-done: // Проверка `done` перед отправкой
+				case bridgeCh <- data:
+				}
+			}
+		}
+	}()
+	return stage(bridgeCh)
 }
