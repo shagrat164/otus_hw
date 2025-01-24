@@ -18,6 +18,7 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 
 	stat := make(DomainStat)
 	scanner := bufio.NewScanner(r)
+
 	for scanner.Scan() {
 		email, err := jsonparser.GetString(scanner.Bytes(), "Email")
 		if err != nil {
