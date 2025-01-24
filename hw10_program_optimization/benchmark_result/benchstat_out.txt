@@ -1,0 +1,15 @@
+goos: linux
+goarch: amd64
+pkg: github.com/shagrat164/otus_hw/hw10_program_optimization
+cpu: AMD Ryzen 9 6900HX with Radeon Graphics        
+                │      v1.txt      │                v2.txt                │
+                │      sec/op      │   sec/op     vs base                 │
+GetDomainStat-2   179708.764µ ± 2%   7.231µ ± 3%  -100.00% (p=0.000 n=10)
+
+                │      v1.txt       │                v2.txt                 │
+                │       B/op        │     B/op      vs base                 │
+GetDomainStat-2   132862.784Ki ± 0%   4.781Ki ± 0%  -100.00% (p=0.000 n=10)
+
+                │     v1.txt      │               v2.txt                │
+                │    allocs/op    │ allocs/op   vs base                 │
+GetDomainStat-2   1700167.00 ± 0%   25.00 ± 0%  -100.00% (p=0.000 n=10)
