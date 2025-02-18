@@ -1,0 +1,16 @@
+goos: linux
+goarch: amd64
+pkg: github.com/shagrat164/otus_hw/hw10_program_optimization
+cpu: AMD Ryzen 9 6900HX with Radeon Graphics        
+BenchmarkGetDomainStat-2   	       6	 178371880 ns/op	136051512 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 177719897 ns/op	136051485 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 181242614 ns/op	136051488 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 181045647 ns/op	136051493 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 177049130 ns/op	136051496 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 169767814 ns/op	136051482 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 182819047 ns/op	136051496 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 177694347 ns/op	136051504 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 183402847 ns/op	136051488 B/op	 1700167 allocs/op
+BenchmarkGetDomainStat-2   	       6	 187494864 ns/op	136051485 B/op	 1700167 allocs/op
+PASS
+ok  	github.com/shagrat164/otus_hw/hw10_program_optimization	21.390s
