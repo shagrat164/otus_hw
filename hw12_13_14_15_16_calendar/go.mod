@@ -1,6 +1,6 @@
 module github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar
 
-go 1.22
+go 1.24
 
 require (
 	github.com/BurntSushi/toml v1.4.0

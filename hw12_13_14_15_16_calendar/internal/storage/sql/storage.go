@@ -135,7 +135,7 @@ func (s *Storage) GetEventsForDay(date time.Time) ([]models.Event, error) {
 }
 
 // GetEventsForWeek возвращает список событий на неделю, начиная с указанной даты.
-func (s *Storage) GetEventsForWeek(startDate time.Time) ([]models.Event, error) {
+func (s *Storage) GetEventsForWeek(startDate time.Time) ([]models.Event, error) { //nolint:dupl
 	endDate := startDate.AddDate(0, 0, 7)
 	query := `
 	SELECT id, title, start_time, end_time, description, user_id, reminder
@@ -175,7 +175,7 @@ func (s *Storage) GetEventsForWeek(startDate time.Time) ([]models.Event, error) 
 }
 
 // GetEventsForMonth возвращает список событий на месяц, начиная с указанной даты.
-func (s *Storage) GetEventsForMonth(startDate time.Time) ([]models.Event, error) {
+func (s *Storage) GetEventsForMonth(startDate time.Time) ([]models.Event, error) { //nolint:dupl
 	endDate := startDate.AddDate(0, 1, 0)
 	query := `
 	SELECT id, title, start_time, end_time, description, user_id, reminder

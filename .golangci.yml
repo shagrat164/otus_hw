@@ -16,12 +16,18 @@ linters-settings:
           - "!$test"
         allow:
           - $gostd
+          - github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar
+          - github.com/google/uuid
+          - github.com/BurntSushi/toml
+          - github.com/jackc/pgx/v5/pgxpool
       Test:
         files:
           - $test
         allow:
           - $gostd
           - github.com/stretchr/testify
+          - github.com/google/uuid
+          - github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar
 issues:
   exclude-rules:
     - path: _test\.go
@@ -35,14 +41,15 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-#    - depguard
+    - depguard
     - dogsled
-#    - dupl
+    - dupl
     - bodyclose
+    - copyloopvar
     - durationcheck
     - errorlint
     - exhaustive
-    - exportloopref
+#    - exportloopref - The linter 'exportloopref' is deprecated. Replaced by copyloopvar.
     - funlen
     - gci
     - gocognit
