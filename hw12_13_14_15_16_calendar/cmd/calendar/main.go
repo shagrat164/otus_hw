@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/app"
 	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/config"
 	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/logger"
+	internalgrpc "github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/server/grpc"
 	internalhttp "github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/server/http"
 	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/storage/initstorage"
 )
@@ -32,6 +34,7 @@ func main() {
 	// Создание конфига.
 	cfg, err := config.LoadConfig(configFile)
 	if err != nil {
+		log.Printf("Load default config. Load config from file error: %v", err)
 		// Если ошибка, конфиг по умолчанию.
 		cfg = config.NewConfig()
 	}
@@ -50,8 +53,18 @@ func main() {
 	// Создание приложения.
 	calendar := app.New(logg, storageData, *cfg)
 
+	// Создание gRPC-сервера.
+	serverGRPC := internalgrpc.NewServer(logg, calendar, cfg)
+
 	// Создание HTTP-сервера.
-	server := internalhttp.NewServer(logg, calendar, cfg)
+	serverHTTP := internalhttp.NewServer(logg, calendar, cfg)
+
+	go func() {
+		if err := serverGRPC.Start(); err != nil {
+			logg.Error("failed to start gRPC server: " + err.Error())
+			os.Exit(1)
+		}
+	}()
 
 	// Обработка сигналов для graceful shutdown.
 	ctx, cancel := signal.NotifyContext(context.Background(),
@@ -67,15 +80,23 @@ func main() {
 		ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancelShutdown()
 
-		if err := server.Stop(ctxShutdown); err != nil {
+		if err := serverHTTP.Stop(ctxShutdown); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
+	}()
+
+	// Горутина для остановки gRPC-сервера.
+	go func() {
+		<-ctx.Done() // Ожидание сигнала на завершение.
+
+		logg.Info("Shutting down gRPC server...")
+		serverGRPC.Stop()
 	}()
 
 	logg.Info("calendar is running...")
 
 	// Запуск сервера.
-	if err := server.Start(ctx); err != nil {
+	if err := serverHTTP.Start(ctx); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic

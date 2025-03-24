@@ -20,6 +20,7 @@ linters-settings:
           - github.com/google/uuid
           - github.com/BurntSushi/toml
           - github.com/jackc/pgx/v5/pgxpool
+          - github.com/grpc-ecosystem/grpc-gateway
       Test:
         files:
           - $test

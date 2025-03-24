@@ -15,3 +15,11 @@ type Event struct {
 	UserID      uuid.UUID // ID пользователя, владельца события
 	Reminder    time.Time // За сколько времени высылать уведомление, опционально
 }
+
+func NewEvent() *Event {
+	event := &Event{
+		ID: uuid.New(),
+	}
+
+	return event
+}

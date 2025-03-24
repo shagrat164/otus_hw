@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package calendar;
+
+option go_package = "./;pb";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+service Calendar {
+    // CreateEvent создаёт новое событие.
+	rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {
+		option (google.api.http) = {
+			post: "/event"
+			body: "*"
+		};
+	}
+
+	// UpdateEvent обновляет существующее событие по id.
+	rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse) {
+		option (google.api.http) = {
+			patch: "/event"
+		};
+	}
+
+	// DeleteEvent удаляет событие по id.
+	rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventResponse) {
+		option (google.api.http) = {
+			delete: "/event"
+		};
+	}
+
+	// GetEventsForDay возвращает список событий на указанный день.
+	rpc GetEventsForDay(GetEventsForRequest) returns (GetEventsForResponse) {
+		option (google.api.http) = {
+			get: "/event/day"
+		};
+	}
+
+	// GetEventsForWeek возвращает список событий на неделю, начиная с указанной даты.
+	rpc GetEventsForWeek(GetEventsForRequest) returns (GetEventsForResponse) {
+		option (google.api.http) = {
+			get: "/event/week"
+		};
+	}
+
+	// GetEventsForMonth возвращает список событий на месяц, начиная с указанной даты.
+	rpc GetEventsForMonth(GetEventsForRequest) returns (GetEventsForResponse) {
+		option (google.api.http) = {
+			get: "/event/month"
+		};
+	}
+}
+
+// Сообщение события
+message Event {
+    UUID id = 1;                            // Уникальный идентификатор события
+	string title = 2;                       // Заголовок
+	google.protobuf.Timestamp startTime = 3;// Дата и время начала события
+	google.protobuf.Timestamp endTime = 4;  // Дата и время окончания события
+	string description = 5;                 // Описание события, опционально
+	UUID userID = 6;                        // ID пользователя, владельца события
+	google.protobuf.Timestamp reminder = 7; // За сколько времени высылать уведомление, опционально
+}
+
+message UUID {
+    string val = 1;
+}
+
+message CreateEventRequest {
+    Event event = 1;
+}
+
+message CreateEventResponse {
+    UUID id = 1; // Только ID созданного события
+}
+
+message UpdateEventRequest {
+    UUID id = 1;
+    Event event = 2;
+}
+
+message UpdateEventResponse {
+    UUID id = 1; // Только ID обновлённого события
+}
+
+message DeleteEventRequest {
+    UUID id = 1;
+}
+
+message DeleteEventResponse {}
+
+message GetEventsForRequest {
+    google.protobuf.Timestamp date = 1; // Дата запроса
+}
+
+message GetEventsForResponse {
+    repeated Event events = 1;          // Массив событий
+}

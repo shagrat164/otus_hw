@@ -1,7 +1,7 @@
 package app
 
 import (
-	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,7 +9,7 @@ import (
 	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/models"
 )
 
-type App struct { // TODO
+type App struct {
 	config  config.Config
 	storage Storage
 	logger  Logger
@@ -59,10 +59,29 @@ func New(logger Logger, storage Storage, config config.Config) *App {
 	}
 }
 
-func (a *App) CreateEvent(ctx context.Context, id, title string) error { //nolint:revive
-	// TODO
-	return nil
-	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+func (a *App) CreateEvent(event models.Event) error {
+	a.logger.Debug(fmt.Sprintf("App CreateEvent: %v", event))
+	return a.storage.CreateEvent(event)
 }
 
-// TODO
+func (a *App) UpdateEvent(id uuid.UUID, event models.Event) error {
+	a.logger.Debug(fmt.Sprintf("App UpdateEvent: id = %s", id.String()))
+	return a.storage.UpdateEvent(id, event)
+}
+
+func (a *App) DeleteEvent(id uuid.UUID) error {
+	a.logger.Debug(fmt.Sprintf("App DeleteEvent: id = %s", id.String()))
+	return a.storage.DeleteEvent(id)
+}
+
+func (a *App) GetEventsForDay(date time.Time) ([]models.Event, error) {
+	return a.storage.GetEventsForDay(date)
+}
+
+func (a *App) GetEventsForWeek(startDate time.Time) ([]models.Event, error) {
+	return a.storage.GetEventsForWeek(startDate)
+}
+
+func (a *App) GetEventsForMonth(startDate time.Time) ([]models.Event, error) {
+	return a.storage.GetEventsForMonth(startDate)
+}

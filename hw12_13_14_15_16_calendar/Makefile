@@ -1,6 +1,6 @@
 BIN := "./bin/calendar"
 DOCKER_IMG="calendar:develop"
-
+PB_DIR := "internal/server/grpc/pb"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
@@ -46,4 +46,15 @@ compose-down:
 clean:
 	rm -rf ./bin
 
-.PHONY: build run build-img run-img version test lint migrate-up migrate-down compose-up compose-down clean
+generate:
+	rm -rf $(PB_DIR)
+	mkdir -p $(PB_DIR)
+	protoc \
+		--proto_path=api/calendar \
+		--go_out=$(PB_DIR) \
+		--go-grpc_out=$(PB_DIR) \
+		--grpc-gateway_out=$(PB_DIR) \
+		--grpc-gateway_opt generate_unbound_methods=true \
+		api/calendar/*.proto
+
+.PHONY: build run build-img run-img version test lint migrate-up migrate-down compose-up compose-down clean generate
