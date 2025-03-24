@@ -1,1 +1,16 @@
-version: "3"
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15 # Использовать образ PostgreSQL версии 15
+    ports:
+      - "5432:5432" # Проброс порта (хост:контейнер)
+    environment:
+      POSTGRES_USER: calendar
+      POSTGRES_PASSWORD: calendar
+      POSTGRES_DB: calendar
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Хранение данных вне контейнера
+
+volumes:
+  pgdata:

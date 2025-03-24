@@ -3,21 +3,24 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/app"
+	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/config"
+	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/logger"
+	internalgrpc "github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/server/grpc"
+	internalhttp "github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/server/http"
+	"github.com/shagrat164/otus_hw/hw12_13_14_15_16_calendar/internal/storage/initstorage"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "/etc/calendar/config.yaml", "Path to configuration file")
 }
 
 func main() {
@@ -28,32 +31,72 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	// Создание конфига.
+	cfg, err := config.LoadConfig(configFile)
+	if err != nil {
+		log.Printf("Load default config. Load config from file error: %v", err)
+		// Если ошибка, конфиг по умолчанию.
+		cfg = config.NewConfig()
+	}
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	// Создание логера.
+	logg, _ := logger.New(cfg.Logger)
 
-	server := internalhttp.NewServer(logg, calendar)
+	// Создание хранилища для данных.
+	storageData, err := initstorage.NewEventsStorage(cfg)
+	if err != nil {
+		// Завершение если ошибка.
+		logg.Error(err.Error())
+		return
+	}
 
+	// Создание приложения.
+	calendar := app.New(logg, storageData, *cfg)
+
+	// Создание gRPC-сервера.
+	serverGRPC := internalgrpc.NewServer(logg, calendar, cfg)
+
+	// Создание HTTP-сервера.
+	serverHTTP := internalhttp.NewServer(logg, calendar, cfg)
+
+	go func() {
+		if err := serverGRPC.Start(); err != nil {
+			logg.Error("failed to start gRPC server: " + err.Error())
+			os.Exit(1)
+		}
+	}()
+
+	// Обработка сигналов для graceful shutdown.
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
+	// Горутина для остановки HTTP-сервера.
 	go func() {
-		<-ctx.Done()
+		<-ctx.Done() // Ожидание сигнала на завершение.
+		logg.Info("Shutting down HTTP server...")
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
+		// Задержка для корректного завершения.
+		ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancelShutdown()
 
-		if err := server.Stop(ctx); err != nil {
+		if err := serverHTTP.Stop(ctxShutdown); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
 	}()
 
+	// Горутина для остановки gRPC-сервера.
+	go func() {
+		<-ctx.Done() // Ожидание сигнала на завершение.
+
+		logg.Info("Shutting down gRPC server...")
+		serverGRPC.Stop()
+	}()
+
 	logg.Info("calendar is running...")
 
-	if err := server.Start(ctx); err != nil {
+	// Запуск сервера.
+	if err := serverHTTP.Start(ctx); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic

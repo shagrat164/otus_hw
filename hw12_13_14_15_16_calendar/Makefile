@@ -1,6 +1,6 @@
 BIN := "./bin/calendar"
 DOCKER_IMG="calendar:develop"
-
+PB_DIR := "internal/server/grpc/pb"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
@@ -23,12 +23,38 @@ version: build
 	$(BIN) version
 
 test:
-	go test -race ./internal/... ./pkg/...
+	go test -race ./internal/...
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.57.2
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.64.5
 
 lint: install-lint-deps
 	golangci-lint run ./...
 
-.PHONY: build run build-img run-img version test lint
+migrate-up:
+	goose -dir migrations postgres "postgres://calendar:calendar@localhost:5432/calendar?sslmode=disable" up
+
+migrate-down:
+	goose -dir migrations postgres "postgres://calendar:calendar@localhost:5432/calendar?sslmode=disable" down
+
+compose-up:
+	docker-compose -f deployments/docker-compose.yaml up -d
+
+compose-down:
+	docker-compose -f deployments/docker-compose.yaml down
+
+clean:
+	rm -rf ./bin
+
+generate:
+	rm -rf $(PB_DIR)
+	mkdir -p $(PB_DIR)
+	protoc \
+		--proto_path=api/calendar \
+		--go_out=$(PB_DIR) \
+		--go-grpc_out=$(PB_DIR) \
+		--grpc-gateway_out=$(PB_DIR) \
+		--grpc-gateway_opt generate_unbound_methods=true \
+		api/calendar/*.proto
+
+.PHONY: build run build-img run-img version test lint migrate-up migrate-down compose-up compose-down clean generate

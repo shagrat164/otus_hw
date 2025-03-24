@@ -1,0 +1,21 @@
+[logger]
+level = "INFO"
+filePath = ""
+
+[storage]
+type = "in-memory" # или "in-memory"
+
+[database]
+host = "localhost"
+port = "5432"
+user = "calendar"
+pwd = "calendar"
+dbname = "calendar"
+
+[httpsrv]
+host = "127.0.0.1"
+port = "8080"
+
+[grpcsrv]
+host = "127.0.0.1"
+port = "8081"
